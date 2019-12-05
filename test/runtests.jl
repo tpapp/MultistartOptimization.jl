@@ -15,6 +15,6 @@ local_minimization(local_method, P0, zeros(5))
 
 t = TikTak(100)
 
-p = global_minimization(t, local_method, P0)
+p = multistart_minimization(t, local_method, P0)
 @test p.location ≈ fill(0.5, 5)
 @test p.value ≈ 0
