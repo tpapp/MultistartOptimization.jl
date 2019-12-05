@@ -1,6 +1,7 @@
 module MultistartOptimization
 
-export MinimizationProblem, NLoptLocalMethod, TikTak, global_minimization, LocationValue
+export MinimizationProblem, LocationValue, NLoptLocalMethod, local_minimization, TikTak,
+    multistart_minimization
 
 using ArgCheck: @argcheck
 using Base.Threads: @spawn, fetch
@@ -9,17 +10,56 @@ using NLopt: NLopt
 using Parameters: @unpack
 using Sobol: SobolSeq, Sobol
 
+####
+#### structures for the problem and results
+####
+
+"""
+$(TYPEDEF)
+
+Wrapper for a minimization problem.
+
+# Fields
+
+$(FIELDS)
+"""
+struct MinimizationProblem{F,T}
+    "The function to be minimized."
+    objective::F
+    "Lower bounds (a vector of real numbers)."
+    lower_bounds::T
+    "Upper bounds (a vector of real numbers)."
+    upper_bounds::T
+    # FIXME constructor checks
+end
+
+"""
+$(TYPEDEF)
+
+A location-value pair.
+
+# Fields
+
+$(FIELDS)
+"""
 struct LocationValue{T <: AbstractVector{<:Real}, S <: Real}
+    "Location (a vector of real numbers)."
     location::T
+    "The value of the objective at `location`."
     value::S
 end
 
-struct MinimizationProblem{F,T}
-    objective::F
-    lower_bounds::T
-    upper_bounds::T
-end
+####
+#### internal utilities
+####
 
+"""
+$(SIGNATURES)
+
+Evaluate and return points of an `N`-element Sobol sequence.
+
+An effort is made to parallelize the code using `Threads` when available.
+"""
 function sobol_starting_points(minimization_problem::MinimizationProblem, N::Integer)
     @unpack objective, lower_bounds, upper_bounds = minimization_problem
     s = SobolSeq(lower_bounds, upper_bounds)
@@ -27,15 +67,36 @@ function sobol_starting_points(minimization_problem::MinimizationProblem, N::Int
     map(fetch, map(x -> @spawn(LocationValue(x, objective(x))), Iterators.take(s, N)))
 end
 
-function keep_lowest(xs, N)
+"""
+$(SIGNATURES)
+
+Helper function to keep the `N` points with the lowest `value`.
+"""
+function _keep_lowest(xs, N)
     @argcheck 1 ≤ N ≤ length(xs)
     partialsort(xs, 1:N, by = p -> p.value)
 end
 
+####
+#### local minimization
+####
+
+"""
+$(TYPEDEF)
+
+A wrapper for algorithms supported by `NLopt`. Used to construct the corresponding
+optimization problem.
+"""
 struct NLoptLocalMethod
     algorithm::NLopt.Algorithm
 end
 
+"""
+$(SIGNATURES)
+
+Solve `minimization_problem` using `local_method`, starting from `x`. Return a
+`LocationValue`.
+"""
 function local_minimization(local_method::NLoptLocalMethod,
                             minimization_problem::MinimizationProblem, x)
     @unpack algorithm = local_method
@@ -53,6 +114,10 @@ function local_minimization(local_method::NLoptLocalMethod,
     LocationValue(optx, optf)
 end
 
+####
+#### multistart minimization
+####
+
 struct TikTak
     quasirandom_N::Int
     initial_N::Int
@@ -61,7 +126,30 @@ struct TikTak
     θ_pow::Float64
 end
 
+"""
+$(SIGNATURES)
+
+The “TikTak” multistart method, as described in *Arnoud, Guvenen, and Kleineberg (2019)*.
+
+This implements the *multistart* part, can be called with arbitrary local methods, see
+[`multistart_minimization`](@ref).
+
+# Arguments
+
+- `quasirandom_N`: the number of quasirandom points for the first pass (using a Sobol
+  sequence).
+
+# Keyword arguments
+
+- `keep_ratio`: the fraction of best quasirandom points which are kept
+
+- `θ_min` and `θ_max` clamp the weight parameter, `θ_pow` determines the power it is raised
+  to.
+
+The defaults are from the paper cited above.
+"""
 function TikTak(quasirandom_N; keep_ratio = 0.1, θ_min = 0.1, θ_max = 0.995, θ_pow = 0.5)
+    @argcheck 0 < keep_ratio ≤ 1
     TikTak(quasirandom_N, ceil(keep_ratio * quasirandom_N), θ_min, θ_max, θ_pow)
 end
 
@@ -70,19 +158,20 @@ function _weight_parameter(t::TikTak, i)
     clamp((i / initial_N)^θ_pow, θ_min, θ_max)
 end
 
-function tiktak_step(t::TikTak, local_method, minimization_problem,
-                     best_point, initial_point, i)
-    θ = _weight_parameter(t, i)
-    x = @. (1 - θ) * initial_point.location + θ * best_point.location
-    local_minimization(local_method, minimization_problem, x)
-end
+"""
+$(SIGNATURES)
 
-function global_minimization(t::TikTak, local_method, minimization_problem)
-    @unpack quasirandom_N, initial_N, θ_min, θ_max, θ_pow = t
+Solve `minimization_problem` by using `local_method` within `multistart_method`.
+"""
+function multistart_minimization(multistart_method::TikTak, local_method,
+                                 minimization_problem)
+    @unpack quasirandom_N, initial_N, θ_min, θ_max, θ_pow = multistart_method
     quasirandom_points = sobol_starting_points(minimization_problem, quasirandom_N)
-    initial_points = keep_lowest(quasirandom_points, initial_N)
+    initial_points = _keep_lowest(quasirandom_points, initial_N)
     function _step(best_point, (i, initial_point))
-        tiktak_step(t, local_method, minimization_problem, best_point, initial_point, i)
+        θ = _weight_parameter(multistart_method, i)
+        x = @. (1 - θ) * initial_point.location + θ * best_point.location
+        local_minimization(local_method, minimization_problem, x)
     end
     foldl(_step, enumerate(initial_points); init = first(initial_points))
 end
