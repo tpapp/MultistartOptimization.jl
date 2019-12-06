@@ -111,6 +111,10 @@ lu_bounds(::Rastrigin) = (-5.12, 5.12)
 
 const RASTRIGIN = Rastrigin()
 
+####
+#### Rosenbrock
+####
+
 """
 Rosenbrock problem.
 
@@ -127,10 +131,6 @@ end
 minimum_location(::Rosenbrock, n::Integer) = ones(n)
 
 lu_bounds(::Rosenbrock) = (-30, 30)
-
-####
-#### Rosenbrock
-####
 
 const ROSENBROCK = Rosenbrock()
 
