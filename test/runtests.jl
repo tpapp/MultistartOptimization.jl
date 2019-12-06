@@ -4,17 +4,23 @@ using NLopt: NLopt
 
 using MultistartOptimization: local_minimization
 
-"A test function with global minimum at [0.5, …]. For sanity checks."
-f0(x) = sum(x -> abs2(x - 0.5), x)
+include("test_functions.jl")
 
-P0 = MinimizationProblem(f0, zeros(5), ones(5))
+@testset "test function sanity checks" begin
+    for F in TEST_FUNCTIONS
+        @test F(minimum_location(F, 10)) ≈ 0
+    end
+end
 
-local_method = NLoptLocalMethod(NLopt.LN_BOBYQA)
-
-local_minimization(local_method, P0, zeros(5))
-
-t = TikTak(100)
-
-p = multistart_minimization(t, local_method, P0)
-@test p.location ≈ fill(0.5, 5)
-@test p.value ≈ 0
+@testset "global optimization" begin
+    for F in setdiff(TEST_FUNCTIONS, (RASTRIGIN, )) # Rastrigin disabled for now
+        n = 10
+        P = MinimizationProblem(F, lower_bounds(F, n), upper_bounds(F, n))
+        local_method = NLoptLocalMethod(NLopt.LN_BOBYQA)
+        multistart_method = TikTak(100)
+        p = multistart_minimization(multistart_method, local_method, P)
+        x₀ = minimum_location(F, n)
+        @test p.location ≈ x₀ atol = 1e-6
+        @test p.value ≈ F(x₀) atol = 1e-16
+    end
+end
