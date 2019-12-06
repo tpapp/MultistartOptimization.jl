@@ -34,7 +34,7 @@ function make_table(local_methods, functions, results; f_atol = 1e-3)
 end
 
 function print_table(io, table)
-    print_row(cells) = println(io, join(cells, " | "))
+    print_row(cells) = println(io, "| ", join(cells, " | "), " |")
     for row in axes(table, 1)
         print_row(table[row, :])
         if row == firstindex(table, 1)

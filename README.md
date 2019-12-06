@@ -43,11 +43,11 @@ Number of function evaluations for
 - dimension `10`,
 - local search terminating with absolute tolerance `1e-8` in the position
 
- | ShiftedQuadratic | Griewank | LevyMontalvo2 | Rastrigin | Rosenbrock
----- | ---- | ---- | ---- | ---- | ----
-`LN_BOBYQA` | 572 | 2681 | 4236 | **FAIL** | 11321
-`LN_NELDERMEAD` | 15678 | 17256 | 33120 | **FAIL** | 50331
-`LN_NEWUOA_BOUND` | 582 | 2064 | 2183 | **FAIL** | 17817
-`LN_SBPLX` | 12319 | 11795 | 11280 | **FAIL** | 6788573
-`LN_COBYLA` | 16921 | **FAIL** | 32806 | **FAIL** | **FAIL**
-`LN_PRAXIS` | 1830 | 8975 | 8239 | **FAIL** | 15438
+|  | ShiftedQuadratic | Griewank | LevyMontalvo2 | Rastrigin | Rosenbrock |
+| ---- | ---- | ---- | ---- | ---- | ---- |
+| `LN_BOBYQA` | 554 | 2656 | 4223 | **FAIL** | 11297 |
+| `LN_NELDERMEAD` | 15677 | 17255 | 33117 | **FAIL** | 50334 |
+| `LN_NEWUOA_BOUND` | 580 | 2059 | 2183 | **FAIL** | 17811 |
+| `LN_SBPLX` | 12318 | 11787 | 11280 | **FAIL** | 6788573 |
+| `LN_COBYLA` | 16922 | **FAIL** | 32810 | **FAIL** | **FAIL** |
+| `LN_PRAXIS` | 1856 | 10154 | 8144 | **FAIL** | 15198 |
