@@ -20,7 +20,7 @@ end
         multistart_method = TikTak(100)
         p = multistart_minimization(multistart_method, local_method, P)
         x₀ = minimum_location(F, n)
-        @test p.location ≈ x₀ atol = 1e-6
-        @test p.value ≈ F(x₀) atol = 1e-16
+        @test p.location ≈ x₀ atol = 1e-5
+        @test p.value ≈ F(x₀) atol = 1e-10
     end
 end
