@@ -45,9 +45,9 @@ Number of function evaluations for
 
 |  | ShiftedQuadratic | Griewank | LevyMontalvo2 | Rastrigin | Rosenbrock |
 | ---- | ---- | ---- | ---- | ---- | ---- |
-| `LN_BOBYQA` | 554 | 2656 | 4223 | **FAIL** | 11297 |
-| `LN_NELDERMEAD` | 15677 | 17255 | 33117 | **FAIL** | 50334 |
-| `LN_NEWUOA_BOUND` | 580 | 2059 | 2183 | **FAIL** | 17811 |
-| `LN_SBPLX` | 12318 | 11787 | 11280 | **FAIL** | 6788573 |
-| `LN_COBYLA` | 16922 | **FAIL** | 32810 | **FAIL** | **FAIL** |
-| `LN_PRAXIS` | 1856 | 10154 | 8144 | **FAIL** | 15198 |
+| `LN_BOBYQA` | 569 | 2633 | 4235 | **FAIL** | 10995 |
+| `LN_NELDERMEAD` | 15750 | 17108 | 33088 | **FAIL** | 42785 |
+| `LN_NEWUOA_BOUND` | 580 | 2088 | 2253 | **FAIL** | 13409 |
+| `LN_SBPLX` | 12329 | 11806 | 11447 | **FAIL** | 7020038 |
+| `LN_COBYLA` | 16943 | 37414 | 32792 | **FAIL** | 985676 |
+| `LN_PRAXIS` | 1850 | 9886 | 8548 | **FAIL** | 15436 |

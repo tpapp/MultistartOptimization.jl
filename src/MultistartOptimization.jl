@@ -182,10 +182,11 @@ function multistart_minimization(multistart_method::TikTak, local_method,
     @unpack quasirandom_N, initial_N, θ_min, θ_max, θ_pow = multistart_method
     quasirandom_points = sobol_starting_points(minimization_problem, quasirandom_N)
     initial_points = _keep_lowest(quasirandom_points, initial_N)
-    function _step(best_point, (i, initial_point))
+    function _step(visited_minimum, (i, initial_point))
         θ = _weight_parameter(multistart_method, i)
-        x = @. (1 - θ) * initial_point.location + θ * best_point.location
-        local_minimization(local_method, minimization_problem, x)
+        x = @. (1 - θ) * initial_point.location + θ * visited_minimum.location
+        local_minimum = local_minimization(local_method, minimization_problem, x)
+        local_minimum.value < visited_minimum.value ? local_minimum : visited_minimum
     end
     foldl(_step, enumerate(initial_points); init = first(initial_points))
 end
