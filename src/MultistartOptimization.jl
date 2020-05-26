@@ -7,7 +7,7 @@ using ArgCheck: @argcheck
 using Base.Threads: @spawn, fetch
 using DocStringExtensions: FIELDS, SIGNATURES, TYPEDEF
 using NLopt: NLopt
-using Parameters: @unpack
+using Parameters: @unpack, @with_kw
 using Sobol: SobolSeq, Sobol
 
 ####
@@ -30,9 +30,13 @@ struct MinimizationProblem{F,T}
     lower_bounds::T
     "Upper bounds (a vector of real numbers)."
     upper_bounds::T
+    "Enable/disable multithreading evaluation of the low-discrepance sobol sequence."
+    enable_parallel::Bool
     # FIXME constructor checks
 end
-
+function MinimizationProblem(objective, lower_bounds, upper_bounds)
+  return MinimizationProblem(objective, lower_bounds, upper_bounds, false)
+end
 """
 $(TYPEDEF)
 
@@ -61,10 +65,14 @@ Evaluate and return points of an `N`-element Sobol sequence.
 An effort is made to parallelize the code using `Threads` when available.
 """
 function sobol_starting_points(minimization_problem::MinimizationProblem, N::Integer)
-    @unpack objective, lower_bounds, upper_bounds = minimization_problem
+    @unpack objective, lower_bounds, upper_bounds, enable_parallel = minimization_problem
     s = SobolSeq(lower_bounds, upper_bounds)
     skip(s, N)                  # better uniformity
-    map(fetch, map(x -> @spawn(LocationValue(x, objective(x))), Iterators.take(s, N)))
+    if enable_parallel
+        map(fetch, map(x -> @spawn(LocationValue(x, objective(x))), Iterators.take(s, N)))
+    else
+        map(x -> LocationValue(x, objective(x)), Iterators.take(s, N))
+    end
 end
 
 """
@@ -110,7 +118,7 @@ Solve `minimization_problem` using `local_method`, starting from `x`. Return a
 function local_minimization(local_method::NLoptLocalMethod,
                             minimization_problem::MinimizationProblem, x)
     @unpack algorithm, xtol_abs, xtol_rel, maxeval, maxtime = local_method
-    @unpack objective, lower_bounds, upper_bounds = minimization_problem
+    @unpack objective, lower_bounds, upper_bounds, enable_parallel = minimization_problem
     opt = NLopt.Opt(algorithm, length(x))
     opt.lower_bounds = lower_bounds
     opt.upper_bounds = upper_bounds
@@ -182,7 +190,6 @@ function multistart_minimization(multistart_method::TikTak, local_method,
     @unpack quasirandom_N, initial_N, θ_min, θ_max, θ_pow = multistart_method
     quasirandom_points = sobol_starting_points(minimization_problem, quasirandom_N)
     initial_points = _keep_lowest(quasirandom_points, initial_N)
-    print("hellow cow")
     function _step(visited_minimum, (i, initial_point))
         θ = _weight_parameter(multistart_method, i)
         x = @. (1 - θ) * initial_point.location + θ * visited_minimum.location
