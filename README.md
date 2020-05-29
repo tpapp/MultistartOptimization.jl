@@ -28,7 +28,8 @@ Example:
 
 ```julia
 using MultistartOptimization, NLopt
-P = MinimizationProblem(x -> sum(abs2, x), -ones(10), ones(10))
+#P = MinimizationProblem(x -> sum(abs2, x), -ones(10), ones(10))
+P = MinimizationProblem(x -> sum.(map.(abs2, x)), -ones(10), ones(10))
 local_method = NLoptLocalMethod(NLopt.LN_BOBYQA)
 multistart_method = TikTak(100)
 p = multistart_minimization(multistart_method, local_method, P)

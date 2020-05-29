@@ -7,7 +7,7 @@ using ArgCheck: @argcheck
 using Base.Threads: @spawn, fetch
 using DocStringExtensions: FIELDS, SIGNATURES, TYPEDEF
 using NLopt: NLopt
-using Parameters: @unpack, @with_kw
+using Parameters: @unpack
 using Sobol: SobolSeq, Sobol
 
 ####
@@ -30,13 +30,9 @@ struct MinimizationProblem{F,T}
     lower_bounds::T
     "Upper bounds (a vector of real numbers)."
     upper_bounds::T
-    "Enable/disable multithreading evaluation of the low-discrepance sobol sequence."
-    enable_parallel::Bool
     # FIXME constructor checks
 end
-function MinimizationProblem(objective, lower_bounds, upper_bounds)
-  return MinimizationProblem(objective, lower_bounds, upper_bounds, false)
-end
+
 """
 $(TYPEDEF)
 
@@ -57,7 +53,7 @@ end
 #### internal utilities
 ####
 
-"""
+"""quasirandom_points
 $(SIGNATURES)
 
 Evaluate and return points of an `N`-element Sobol sequence.
@@ -65,14 +61,12 @@ Evaluate and return points of an `N`-element Sobol sequence.
 An effort is made to parallelize the code using `Threads` when available.
 """
 function sobol_starting_points(minimization_problem::MinimizationProblem, N::Integer)
-    @unpack objective, lower_bounds, upper_bounds, enable_parallel = minimization_problem
+    @unpack objective, lower_bounds, upper_bounds = minimization_problem
     s = SobolSeq(lower_bounds, upper_bounds)
     skip(s, N)                  # better uniformity
-    if enable_parallel
-        map(fetch, map(x -> @spawn(LocationValue(x, objective(x))), Iterators.take(s, N)))
-    else
-        map(x -> LocationValue(x, objective(x)), Iterators.take(s, N))
-    end
+    x = [Sobol.next!(s) for idx = 1:N] # convert Sobol object to array of vectors
+    y = objective(x) #evaluate an array of vectors
+    [ LocationValue(x[idx][:] , y[idx]) for idx = 1:N] # convert Sobol object to array of vectors
 end
 
 """
@@ -118,13 +112,13 @@ Solve `minimization_problem` using `local_method`, starting from `x`. Return a
 function local_minimization(local_method::NLoptLocalMethod,
                             minimization_problem::MinimizationProblem, x)
     @unpack algorithm, xtol_abs, xtol_rel, maxeval, maxtime = local_method
-    @unpack objective, lower_bounds, upper_bounds, enable_parallel = minimization_problem
+    @unpack objective, lower_bounds, upper_bounds = minimization_problem
     opt = NLopt.Opt(algorithm, length(x))
     opt.lower_bounds = lower_bounds
     opt.upper_bounds = upper_bounds
     function f̃(x, grad)         # wrapper for NLopt
         @argcheck isempty(grad) # ensure no derivatives are asked for
-        objective(x)
+        return objective([x])[1] #evaluation of just one point
     end
     opt.min_objective = f̃
     opt.xtol_abs = xtol_abs
