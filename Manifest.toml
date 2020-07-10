@@ -91,7 +91,7 @@ uuid = "a63ad114-7e13-5084-954f-fe012c677804"
 deps = ["BinaryProvider", "CMakeWrapper", "Libdl", "MathProgBase", "Test"]
 git-tree-sha1 = "b46237debcacd4fed7bbeb31200667a75b90384f"
 uuid = "76087f3c-5699-56af-9a33-bf431cd00edd"
-version = "0.5.1"
+version = "0.6.0"
 
 [[OrderedCollections]]
 deps = ["Random", "Serialization", "Test"]
