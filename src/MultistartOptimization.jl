@@ -9,6 +9,7 @@ using DocStringExtensions: FIELDS, SIGNATURES, TYPEDEF
 using NLopt: NLopt
 using Parameters: @unpack
 using Sobol: SobolSeq, Sobol
+using ProgressMeter
 
 ####
 #### structures for the problem and results
@@ -178,17 +179,25 @@ $(SIGNATURES)
 Solve `minimization_problem` by using `local_method` within `multistart_method`.
 """
 function multistart_minimization(multistart_method::TikTak, local_method,
-                                 minimization_problem)
+                                 minimization_problem; progress=false)
     @unpack quasirandom_N, initial_N, θ_min, θ_max, θ_pow = multistart_method
     quasirandom_points = sobol_starting_points(minimization_problem, quasirandom_N)
     initial_points = _keep_lowest(quasirandom_points, initial_N)
+    if progress
+        prog = Progress(length(initial_points))
+    end
+
     function _step(visited_minimum, (i, initial_point))
         θ = _weight_parameter(multistart_method, i)
         x = @. (1 - θ) * initial_point.location + θ * visited_minimum.location
         local_minimum = local_minimization(local_method, minimization_problem, x)
+        if @isdefined(prog)
+            ProgressMeter.next!(prog)
+        end
         local_minimum.value < visited_minimum.value ? local_minimum : visited_minimum
     end
     foldl(_step, enumerate(initial_points); init = first(initial_points))
 end
+
 
 end # module
