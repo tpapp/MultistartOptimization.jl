@@ -14,12 +14,13 @@ end
 
 @testset "global optimization" begin
     pr = true
+    psp = false
     for F in setdiff(TEST_FUNCTIONS, (RASTRIGIN, )) # Rastrigin disabled for now
         n = 10
         P = MinimizationProblem(F, lower_bounds(F, n), upper_bounds(F, n))
         local_method = NLoptLocalMethod(NLopt.LN_BOBYQA)
         multistart_method = TikTak(100)
-        p = multistart_minimization(multistart_method, local_method, P; progress=pr)
+        p = multistart_minimization(multistart_method, local_method, P; progress=pr, parallel_sobol_points=psp)
         x₀ = minimum_location(F, n)
         @test p.location ≈ x₀ atol = 1e-5
         @test p.value ≈ F(x₀) atol = 1e-10
