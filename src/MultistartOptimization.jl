@@ -61,11 +61,15 @@ Evaluate and return points of an `N`-element Sobol sequence.
 
 An effort is made to parallelize the code using `Threads` when available.
 """
-function sobol_starting_points(minimization_problem::MinimizationProblem, N::Integer)
+function sobol_starting_points(minimization_problem::MinimizationProblem, N::Integer; parallel_map=true)
     @unpack objective, lower_bounds, upper_bounds = minimization_problem
     s = SobolSeq(lower_bounds, upper_bounds)
     skip(s, N)                  # better uniformity
-    map(fetch, map(x -> @spawn(LocationValue(x, objective(x))), Iterators.take(s, N)))
+    if parallel_map
+        map(fetch, map(x -> @spawn(LocationValue(x, objective(x))), Iterators.take(s, N)))
+    else
+        map(x -> LocationValue(x, objective(x)), Iterators.take(s, N))
+    end
 end
 
 """
@@ -179,9 +183,9 @@ $(SIGNATURES)
 Solve `minimization_problem` by using `local_method` within `multistart_method`.
 """
 function multistart_minimization(multistart_method::TikTak, local_method,
-                                 minimization_problem; progress=false)
+                                 minimization_problem; progress=false, parallel_sobol_points=true)
     @unpack quasirandom_N, initial_N, θ_min, θ_max, θ_pow = multistart_method
-    quasirandom_points = sobol_starting_points(minimization_problem, quasirandom_N)
+    quasirandom_points = sobol_starting_points(minimization_problem, quasirandom_N; parallel_map=parallel_sobol_points)
     initial_points = _keep_lowest(quasirandom_points, initial_N)
     if progress
         prog = Progress(length(initial_points))
