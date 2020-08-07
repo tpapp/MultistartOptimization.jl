@@ -25,5 +25,6 @@ end
         @test p.location ≈ x₀ atol = 1e-5
         @test p.value ≈ F(x₀) atol = 1e-10
         pr = false
+        psp = true
     end
 end
