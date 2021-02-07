@@ -61,7 +61,7 @@ Evaluate and return points of an `N`-element Sobol sequence.
 
 An effort is made to parallelize the code using `Threads` when available.
 """
-function sobol_starting_points(minimization_problem::MinimizationProblem, N::Integer; parallel_map=true)
+function sobol_starting_points(minimization_problem::MinimizationProblem, N::Integer; parallel_map = true)
     @unpack objective, lower_bounds, upper_bounds = minimization_problem
     s = SobolSeq(lower_bounds, upper_bounds)
     skip(s, N)                  # better uniformity
