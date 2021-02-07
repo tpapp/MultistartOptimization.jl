@@ -203,5 +203,4 @@ function multistart_minimization(multistart_method::TikTak, local_method,
     foldl(_step, enumerate(initial_points); init = first(initial_points))
 end
 
-
 end # module
