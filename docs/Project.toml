@@ -1,6 +1,5 @@
 [deps]
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
-MultistartOptimization = "3933049c-43be-478e-a8bb-6e0f7fd53575"
 
 [compat]
-Documenter = "~0.24"
+Documenter = "~0.26"
