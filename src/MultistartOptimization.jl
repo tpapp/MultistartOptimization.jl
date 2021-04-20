@@ -130,6 +130,7 @@ function local_minimization(local_method::NLoptLocalMethod,
     opt.maxeval = maxeval
     opt.maxtime = maxtime
     optf, optx, ret = NLopt.optimize(opt, x)
+    @info "NLopt results" optf optx ret
     # FIXME ret is ignored, save it? is it useful?
     LocationValue(optx, optf)
 end
@@ -194,6 +195,7 @@ function multistart_minimization(multistart_method::TikTak, local_method,
     function _step(visited_minimum, (i, initial_point))
         θ = _weight_parameter(multistart_method, i)
         x = @. (1 - θ) * initial_point.location + θ * visited_minimum.location
+        @info "starting local optimization" x
         local_minimum = local_minimization(local_method, minimization_problem, x)
         local_minimum.value < visited_minimum.value ? local_minimum : visited_minimum
     end
