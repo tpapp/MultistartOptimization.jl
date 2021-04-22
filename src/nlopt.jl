@@ -8,20 +8,25 @@ import MultistartOptimization: local_minimization
 
 export NLoptLocalMethod
 
-Base.@kwdef struct NLoptLocalMethod
+const NLopt_ret_success = Set([:SUCCESS, :STOPVAL_REACHED, :FTOL_REACHED, :XTOL_REACHED,
+                               :MAXEVAL_REACHED, :MAXTIME_REACHED])
+
+Base.@kwdef struct NLoptLocalMethod{S}
     algorithm::NLopt.Algorithm
     xtol_abs::Float64 = 1e-8
     xtol_rel::Float64 = 1e-8
     maxeval::Int = 0
     maxtime::Float64 = 0.0
+    "Return values which are considered as “success”."
+    ret_success::S = NLopt_ret_success
 end
 
 """
 $(SIGNATURES)
 
 A wrapper for algorithms supported by `NLopt`. Used to construct the corresponding
-optimization problem. All positive return values are considered valid (`ret` is also kept in
-the result), all negative return values are considered invalid.
+optimization problem. All return values in `ret_success` are considered valid (`ret` is also
+kept in the result), all negative return values are considered invalid.
 
 See the NLopt documentation for the options. Defaults are changed slightly.
 """
@@ -37,7 +42,7 @@ Solve `minimization_problem` using `local_method`, starting from `x`. Return a
 """
 function local_minimization(local_method::NLoptLocalMethod,
                             minimization_problem::MinimizationProblem, x)
-    @unpack algorithm, xtol_abs, xtol_rel, maxeval, maxtime = local_method
+    @unpack algorithm, xtol_abs, xtol_rel, maxeval, maxtime, ret_success = local_method
     @unpack objective, lower_bounds, upper_bounds = minimization_problem
     opt = NLopt.Opt(algorithm, length(x))
     opt.lower_bounds = lower_bounds
@@ -52,14 +57,5 @@ function local_minimization(local_method::NLoptLocalMethod,
     opt.maxeval = maxeval
     opt.maxtime = maxtime
     optf, optx, ret = NLopt.optimize(opt, x)
-    if (ret == NLopt.SUCCESS ||
-        ret == NLopt.STOPVAL_REACHED ||
-        ret == NLopt.FTOL_REACHED ||
-        ret == NLopt.XTOL_REACHED ||
-        ret == NLopt.MAXEVAL_REACHED ||
-        ret == NLopt.MAXTIME_REACHED)
-        (value = optf, location = optx, ret = ret)
-    else
-        nothing
-    end
+    ret ∈ ret_success ? (value = optf, location = optx, ret = ret) : nothing
 end
