@@ -92,6 +92,7 @@ function multistart_minimization(multistart_method::TikTak, local_method,
         θ = _weight_parameter(multistart_method, i)
         x = @. (1 - θ) * initial_point.location + θ * visited_minimum.location
         local_minimum = local_minimization(local_method, minimization_problem, x)
+        local_minimum ≡ nothing && return visited_minimum
         local_minimum.value < visited_minimum.value ? local_minimum : visited_minimum
     end
     foldl(_step, enumerate(initial_points); init = first(initial_points))

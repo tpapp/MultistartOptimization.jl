@@ -20,7 +20,8 @@ end
 $(SIGNATURES)
 
 A wrapper for algorithms supported by `NLopt`. Used to construct the corresponding
-optimization problem.
+optimization problem. All positive return values are considered valid (`ret` is also kept in
+the result), all negative return values are considered invalid.
 
 See the NLopt documentation for the options. Defaults are changed slightly.
 """
@@ -51,5 +52,14 @@ function local_minimization(local_method::NLoptLocalMethod,
     opt.maxeval = maxeval
     opt.maxtime = maxtime
     optf, optx, ret = NLopt.optimize(opt, x)
-    (value = optf, location = optx, ret = ret)
+    if (ret == NLopt.SUCCESS ||
+        ret == NLopt.STOPVAL_REACHED ||
+        ret == NLopt.FTOL_REACHED ||
+        ret == NLopt.XTOL_REACHED ||
+        ret == NLopt.MAXEVAL_REACHED ||
+        ret == NLopt.MAXTIME_REACHED)
+        (value = optf, location = optx, ret = ret)
+    else
+        nothing
+    end
 end
