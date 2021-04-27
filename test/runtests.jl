@@ -2,8 +2,6 @@ using MultistartOptimization
 using Test
 using NLopt: NLopt
 
-using MultistartOptimization: local_minimization
-
 include("test_functions.jl")
 
 @testset "test function sanity checks" begin
@@ -23,4 +21,19 @@ end
         @test p.location ≈ x₀ atol = 1e-5
         @test p.value ≈ F(x₀) atol = 1e-10
     end
+end
+
+@testset "custom local minimization and infeasibility" begin
+    P = MinimizationProblem(x -> sum(abs2, x), [-1, -1], [1, 1])
+    x0 = [0.0, 0.0]
+    function _local_method(minimization_problem, x)
+        if sum(abs2, x) < 0.25
+            (location = x0, value = 0.0)
+        else
+            nothing
+        end
+    end
+    p = multistart_minimization(TikTak(100), _local_method, P)
+    @test p.location == x0
+    @test p.value == 0.0
 end
