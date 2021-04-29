@@ -15,5 +15,5 @@ include("tiktak.jl")
 function __init__()
     @require NLopt="76087f3c-5699-56af-9a33-bf431cd00edd" include("nlopt.jl")
 	@requires GalacticOptim="a75be94c-b780-496d-a8a9-0878b188d577" include("GalacticOptim.jl")
-
+end
 end # module
