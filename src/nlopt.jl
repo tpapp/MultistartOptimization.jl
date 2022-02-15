@@ -47,11 +47,9 @@ function local_minimization(local_method::NLoptLocalMethod,
     opt = NLopt.Opt(algorithm, length(x))
     opt.lower_bounds = lower_bounds
     opt.upper_bounds = upper_bounds
-    function f̃(x, grad)         # wrapper for NLopt
-        @argcheck isempty(grad) # ensure no derivatives are asked for
-        objective(x)
-    end
-    opt.min_objective = f̃
+
+    # if a method objective(x,grad) exists, use it. otherwise assume objective is not differentiable (which was the previous behavior)
+    opt.min_objective = applicable(objective,x,x) ? objective : nloptwrapper(objective)
     opt.xtol_abs = xtol_abs
     opt.xtol_rel = xtol_rel
     opt.maxeval = maxeval
@@ -59,3 +57,13 @@ function local_minimization(local_method::NLoptLocalMethod,
     optf, optx, ret = NLopt.optimize(opt, x)
     ret ∈ ret_success ? (value = optf, location = optx, ret = ret) : nothing
 end
+
+
+function nloptwrapper(fn)  
+    function f̃(x,grad)              # wrapper for NLopt
+        @argcheck isempty(grad)     # ensure no derivatives are asked for
+        return fn(x)
+    end
+    return f̃
+end
+
