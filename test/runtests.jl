@@ -43,15 +43,15 @@ end
 @testset "local gradient-based methods" begin
     function autodiff(fn)
         # adapted from here https://github.com/JuliaOpt/NLopt.jl/issues/128
-        function f(x) 
-            return fn(x) 
+        function f(x)
+            return fn(x)
         end
-    
+
         function f(x,∇f)
             if !(∇f == nothing) && (length(∇f) != 0)
                 ForwardDiff.gradient!(∇f,fn,x)
             end
-        
+
             fx = fn(x)
             return fx
         end
@@ -69,4 +69,26 @@ end
         @test p.value ≈ F(x₀) atol = 1e-10
     end
 
+end
+
+@testset "prepending points and sanity checks" begin
+    N = 3
+    lb = .-ones(N)
+    ub = 2 .* ones(N)
+    vz1 = -3.0
+    z1 = lb .+ rand(N) .* (ub .- lb) # special-cased, will be vz1
+    g = function(x)
+        if x == z1
+            vz1
+        else
+            sum(abs2, x)
+        end
+    end
+    P = MinimizationProblem(g, lb, ub)
+    MM, LM = TikTak(100), NLoptLocalMethod(NLopt.LN_BOBYQA)
+    r0 = multistart_minimization(MM, LM, P; use_threads = false)
+    @test r0.value ≈ 0 atol = 1e-9         # sanity check
+    r1 = multistart_minimization(MM, LM, P; use_threads = false, prepend_points = [z1])
+    @test r1.value == vz1
+    @test r1.location == z1
 end
