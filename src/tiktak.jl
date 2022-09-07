@@ -47,6 +47,29 @@ end
 """
 $(SIGNATURES)
 
+Determine if the value of the objective is a finite or `-Inf` real number.
+
+Internal, a basic sanity check to catch errors early.
+"""
+_acceptable_value(value) = value isa Real && (isfinite(value) || isinf(value)) # we don't want NaNs
+
+"""
+$(SIGNATURES)
+
+Evaluate `objective` at `location`, returning `location` and `value` in a `NamedTuple`.
+Perform basic sanity checks.
+
+Internal.
+"""
+function _objective_at_location(objective, location)
+        value = objective(location)
+        @argcheck _acceptable_value(value)
+        (; location, value)
+end
+
+"""
+$(SIGNATURES)
+
 Evaluate and return points of an `N`-element Sobol sequence.
 
 When `use_threads`, execution is parallelized using `Threads.@spawn`.
@@ -57,7 +80,7 @@ function sobol_starting_points(minimization_problem::MinimizationProblem, N::Int
     s = SobolSeq(lower_bounds, upper_bounds)
     skip(s, N)                  # better uniformity
     points = Iterators.take(s, N)
-    _initial(x) = (location = x, value = objective(x))
+    _initial(x) = _objective_at_location(objective, x)
     if use_threads
         map(fetch, map(x -> @spawn(_initial(x)), points))
     else
@@ -81,13 +104,22 @@ $(SIGNATURES)
 Solve `minimization_problem` by using `local_method` within `multistart_method`.
 
 When `use_threads`, initial point search is parallelized using `Threads.@spawn`.
+
+`prepend_points` should contain a vector of initial starting points that are prepended to
+the Sobol sequence. These are useful if a guess is available for the vicinity of the
+optimum.
 """
 function multistart_minimization(multistart_method::TikTak, local_method,
-                                 minimization_problem; use_threads = true)
+                                 minimization_problem;
+                                 use_threads = true,
+                                 prepend_points = Vector{Vector{Float64}}())
     @unpack quasirandom_N, initial_N, θ_min, θ_max, θ_pow = multistart_method
+    @unpack objective = minimization_problem
     quasirandom_points = sobol_starting_points(minimization_problem, quasirandom_N,
                                                use_threads)
     initial_points = _keep_lowest(quasirandom_points, initial_N)
+    all_points = vcat(map(x -> _objective_at_location(objective, x), prepend_points),
+                      initial_points)
     function _step(visited_minimum, (i, initial_point))
         θ = _weight_parameter(multistart_method, i)
         x = @. (1 - θ) * initial_point.location + θ * visited_minimum.location
@@ -95,5 +127,5 @@ function multistart_minimization(multistart_method::TikTak, local_method,
         local_minimum ≡ nothing && return visited_minimum
         local_minimum.value < visited_minimum.value ? local_minimum : visited_minimum
     end
-    foldl(_step, enumerate(initial_points); init = first(initial_points))
+    foldl(_step, enumerate(Iterators.drop(all_points, 1)); init = first(all_points))
 end
