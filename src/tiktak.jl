@@ -114,7 +114,9 @@ function multistart_minimization(multistart_method::TikTak, local_method,
                                  use_threads = true,
                                  prepend_points = Vector{Vector{Float64}}())
     @unpack quasirandom_N, initial_N, θ_min, θ_max, θ_pow = multistart_method
-    @unpack objective = minimization_problem
+    @unpack objective, lower_bounds, upper_bounds = minimization_problem
+    @argcheck(all(x -> all(lower_bounds .≤ x .≤ upper_bounds), prepend_points),
+              "prepend_points outside problem bounds")
     quasirandom_points = sobol_starting_points(minimization_problem, quasirandom_N,
                                                use_threads)
     initial_points = _keep_lowest(quasirandom_points, initial_N)
