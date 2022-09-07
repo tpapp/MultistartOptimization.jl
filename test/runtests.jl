@@ -76,17 +76,17 @@ end
     lb = .-ones(N)
     ub = 2 .* ones(N)
     vz1 = -5.0
-    z1 = lb .+ rand(N) .* (ub .- lb) # special-cased, will be vz1
+    z1 = lb .+ 1/√2 .* (ub .- lb) # special-cased, will be vz1
     g = function(x)
         # very narrow optimum near z1
         α = 1 - exp(-sum(abs2, 100 .* (x .- z1)))
-        α * sum(abs2, x) + (1 - α) * -vz1
+        α * sum(abs2, x) + (1 - α) * vz1
     end
     P = MinimizationProblem(g, lb, ub)
     MM, LM = TikTak(100), NLoptLocalMethod(NLopt.LN_BOBYQA)
     r0 = multistart_minimization(MM, LM, P; use_threads = false)
     @test r0.value ≈ 0 atol = 1e-9         # sanity check
     r1 = multistart_minimization(MM, LM, P; use_threads = false, prepend_points = [z1])
-    @test r1.value == -vz1
+    @test r1.value == vz1
     @test r1.location == z1
 end
