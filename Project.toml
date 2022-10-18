@@ -1,7 +1,7 @@
 name = "MultistartOptimization"
 uuid = "3933049c-43be-478e-a8bb-6e0f7fd53575"
 authors = ["Tamas K. Papp <tkpapp@gmail.com>"]
-version = "0.2.1"
+version = "0.2.2"
 
 [deps]
 ArgCheck = "dce04be8-c92d-5529-be00-80e4d2c0e197"
@@ -13,7 +13,7 @@ Sobol = "ed01d8cd-4d21-5b2a-85b4-cc3bdc58bad4"
 
 [compat]
 ArgCheck = "1, 2"
-DocStringExtensions = "0.8"
+DocStringExtensions = "0.8, 0.9"
 NLopt = "0.5, 0.6"
 Parameters = "0.12"
 Requires = "1.1"
