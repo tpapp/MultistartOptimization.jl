@@ -1,7 +1,7 @@
 name = "MultistartOptimization"
 uuid = "3933049c-43be-478e-a8bb-6e0f7fd53575"
 authors = ["Tamas K. Papp <tkpapp@gmail.com>"]
-version = "0.2.2"
+version = "0.2.3"
 
 [deps]
 ArgCheck = "dce04be8-c92d-5529-be00-80e4d2c0e197"
