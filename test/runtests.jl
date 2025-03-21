@@ -15,7 +15,7 @@ end
     for F in setdiff(TEST_FUNCTIONS, (RASTRIGIN, )) # Rastrigin disabled for now
         n = 10
         P = MinimizationProblem(F, lower_bounds(F, n), upper_bounds(F, n))
-        local_method = NLoptLocalMethod(NLopt.LN_BOBYQA)
+        local_method = NLopt_local_method(NLopt.LN_BOBYQA)
         multistart_method = TikTak(100)
         p = multistart_minimization(multistart_method, local_method, P)
         x₀ = minimum_location(F, n)
@@ -61,7 +61,7 @@ end
     for F in setdiff(TEST_FUNCTIONS, (RASTRIGIN, )) # Rastrigin disabled for now
         n = 10
         P = MinimizationProblem(autodiff(F), lower_bounds(F, n), upper_bounds(F, n))
-        local_method = NLoptLocalMethod(NLopt.LD_LBFGS)
+        local_method = NLopt_local_method(NLopt.LD_LBFGS)
         multistart_method = TikTak(100)
         p = multistart_minimization(multistart_method, local_method, P)
         x₀ = minimum_location(F, n)
@@ -83,7 +83,7 @@ end
         α * sum(abs2, x) + (1 - α) * vz1
     end
     P = MinimizationProblem(g, lb, ub)
-    MM, LM = TikTak(100), NLoptLocalMethod(NLopt.LN_BOBYQA)
+    MM, LM = TikTak(100), NLopt_local_method(NLopt.LN_BOBYQA)
     r0 = multistart_minimization(MM, LM, P; use_threads = false)
     @test r0.value ≈ 0 atol = 1e-9         # sanity check
     r1 = multistart_minimization(MM, LM, P; use_threads = false, prepend_points = [z1])

@@ -40,7 +40,7 @@ function TikTak(quasirandom_N; keep_ratio = 0.1, θ_min = 0.1, θ_max = 0.995, �
 end
 
 function _weight_parameter(t::TikTak, i)
-    @unpack initial_N, θ_min, θ_max, θ_pow = t
+    (; initial_N, θ_min, θ_max, θ_pow) = t
     clamp((i / initial_N)^θ_pow, θ_min, θ_max)
 end
 
@@ -76,7 +76,7 @@ When `use_threads`, execution is parallelized using `Threads.@spawn`.
 """
 function sobol_starting_points(minimization_problem::MinimizationProblem, N::Integer,
                                use_threads::Bool)
-    @unpack objective, lower_bounds, upper_bounds = minimization_problem
+    (; objective, lower_bounds, upper_bounds) = minimization_problem
     s = SobolSeq(lower_bounds, upper_bounds)
     skip(s, N)                  # better uniformity
     points = Iterators.take(s, N)
@@ -113,8 +113,8 @@ function multistart_minimization(multistart_method::TikTak, local_method,
                                  minimization_problem;
                                  use_threads = true,
                                  prepend_points = Vector{Vector{Float64}}())
-    @unpack quasirandom_N, initial_N, θ_min, θ_max, θ_pow = multistart_method
-    @unpack objective, lower_bounds, upper_bounds = minimization_problem
+    (; quasirandom_N, initial_N, θ_min, θ_max, θ_pow) = multistart_method
+    (; objective, lower_bounds, upper_bounds) = minimization_problem
     @argcheck(all(x -> all(lower_bounds .≤ x .≤ upper_bounds), prepend_points),
               "prepend_points outside problem bounds")
     quasirandom_points = sobol_starting_points(minimization_problem, quasirandom_N,
