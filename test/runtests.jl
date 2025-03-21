@@ -91,3 +91,13 @@ end
     @test r1.location == z1
     @test_throws ArgumentError multistart_minimization(MM, LM, P; use_threads = false, prepend_points = [lb .- 2])
 end
+
+####
+#### automated QA
+####
+
+import Aqua
+Aqua.test_all(MultistartOptimization; stale_deps = false)
+Aqua.test_stale_deps(MultistartOptimization, ignore = [:NLopt]) # conditional
+import JET
+JET.report_package("MultistartOptimization"; target_modules = [MultistartOptimization])

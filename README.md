@@ -5,6 +5,7 @@
 [![codecov.io](http://codecov.io/github/tpapp/MultistartOptimization.jl/coverage.svg?branch=master)](http://codecov.io/github/tpapp/MultistartOptimization.jl?branch=master)
 [![Documentation](https://img.shields.io/badge/docs-stable-blue.svg)](https://tpapp.github.io/MultistartOptimization.jl/stable)
 [![Documentation](https://img.shields.io/badge/docs-master-blue.svg)](https://tpapp.github.io/MultistartOptimization.jl/dev)
+[![Aqua QA](https://raw.githubusercontent.com/JuliaTesting/Aqua.jl/master/badge.svg)](https://github.com/JuliaTesting/Aqua.jl)
 
 Experimenting with multistart optimization methods in Julia.
 
