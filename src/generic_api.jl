@@ -2,7 +2,7 @@
 #### generic API
 ####
 
-export MinimizationProblem, local_minimization, multistart_minimization
+export MinimizationProblem, local_minimization, multistart_minimization, NLopt_local_method
 
 struct MinimizationProblem{F,T<:AbstractVector}
     "The function to be minimized."
@@ -63,3 +63,10 @@ end
 Multistart minimization using the given multistart and local methods.
 """
 function multistart_minimization end
+
+"""
+A placeholder for integrating into the `NLopt` interface.
+
+Methods are added when `NLopt` is loaded (via weak dependencies).
+"""
+function NLopt_local_method end
