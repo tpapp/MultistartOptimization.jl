@@ -8,8 +8,6 @@ makedocs(
     authors = "Tamas K. Papp",
     sitename = "MultistartOptimization.jl",
     pages = Any["index.md"],
-    strict = true,
-    clean = true,
     checkdocs = :exports,
 )
 

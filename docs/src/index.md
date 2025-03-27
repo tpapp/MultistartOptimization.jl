@@ -11,7 +11,7 @@ using MultistartOptimization, NLopt
 
 f(x) = sum(x -> abs2(x - 1), x)                     # objecive ∑(xᵢ-1)²
 P = MinimizationProblem(f, fill(-2, 4), fill(2, 4)) # search in [-2, 2]⁴
-local_method = NLoptLocalMethod(NLopt.LN_BOBYQA)    # loaded on demand with `using NLopt`
+local_method = NLopt_local_method(NLopt.LN_BOBYQA)    # loaded on demand with `using NLopt`
 multistart_method = TikTak(100)
 p = multistart_minimization(multistart_method, local_method, P)
 ```
@@ -36,8 +36,8 @@ Local methods are based on other optimization packages, and loaded on demand.
 
 ### NLopt
 
-Available after `NLopt` is loaded, eg with `using NLopt`.
+After `NLopt` is loaded, the following is made available.
 
 ```@docs
-NLoptLocalMethod
+NLopt_local_method
 ```
